@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Udacity Todos Goals</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js'></script>
+    <script src='https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js'></script>
+    <script src='https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js'></script>
+    <script src='https://unpkg.com/babel-standalone@6.15.0/babel.min.js'></script>
 </head>
 <body>
 
@@ -21,52 +24,14 @@
     <ul id="goals"></ul>
 </div>
 
+<hr />
+
+<div id="app"></div>
+
 <script type="text/javascript">
-
-
-
     function generateId(){
         return Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
     }
-
-    //Library code
-    //This is going to be commented out because we are going to be using redux instead
-
-    /*function createStore(reducer){
-        //The store should have four parts
-        // 1. The state
-        // 2. Get the state
-        // 3. Listen to changes on the state
-        // 4. Update the state
-
-        let state
-        let listeners = []
-
-        const getState = () => state
-
-        const subscribe = (listener) => {
-            console.log("I'm now inside the subscriber");
-            console.log(listener);
-            listeners.push(listener)
-            return() => {
-                listeners = listeners.filter( (l) => l !== listener )
-            }
-        }
-
-        const dispatch = (action) => {
-            state = reducer(state, action)
-            listeners.forEach((listener) => listener())
-        }
-
-
-        return {
-            getState,
-            subscribe,
-            dispatch
-        }
-
-    } //End of function create store
-    */
 
     //App code
     const ADD_TODO = 'ADD_TODO'
@@ -136,19 +101,33 @@
         }
     }
 
-    /*function app (state = {}, action){
-        return {
-            todos: todos(state.todos, action),
-            goals: goals(state.goals, action)
+    const checker = (store) => (next) => (action) => {
+        if(action.type === ADD_TODO && action.todo.name.toLowerCase().includes('bitcoin')){
+            return alert("Nope, That's a bad idea.");
         }
-    }*/
+
+        if(action.type === ADD_GOAL && action.goal.name.toLowerCase().includes('bitcoin')){
+            return alert("Nope. That's a bad idea.")
+        }
+
+        return next(action);
+    }
+
+    const logger = (store) => (next) => (action) => {
+        console.group(action.type)
+        console.log('The action: ', action)
+        const result = next(action)
+        console.log('The new state: ', store.getState())
+        console.groupEnd()
+        return result
+    }
 
 
     //Here I create the store and start calling respective methods.
     const store = Redux.createStore(Redux.combineReducers({
         todos,
         goals,
-    }))
+    }), Redux.applyMiddleware(checker, logger))
 
    store.subscribe(() => {
        const{ goals, todos } = store.getState()
@@ -176,7 +155,6 @@
         const input = document.getElementById('goal')
         const name = input.value
         input.value = ''
-
         store.dispatch(addGoalAction({
             id: generateId(),
             name
@@ -224,5 +202,53 @@
 
 </script>
 
+<script type="text/babel">
+    function List(props){
+        return (
+            <ul>
+                <li>LIST</li>
+            </ul>
+        )
+    }
+
+    class Todos extends React.Component {
+        render(){
+            return(
+                <div>
+                    TODOS
+                    <List />
+                </div>
+            )
+        }
+    }
+
+    class Goals extends React.Component {
+        render() {
+            return(
+                <div>
+                    GOALS
+                    <List />
+                </div>
+            )
+        }
+    }
+
+    class App extends React.Component {
+        render() {
+            return(
+                <div>
+                    <Todos />
+                    <Goals />
+                </div>
+            )
+        }
+    }
+
+
+    ReactDOM.render(
+        <App />,
+        document.getElementById('app')
+    )
+</script>
 </body>
 </html>
